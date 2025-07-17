@@ -1,2 +1,2 @@
 # Social-ifpi
-Trabalho final de Programação para Internet I - Rede Social
+Trabalho final de Programação para Internet I - Blog
