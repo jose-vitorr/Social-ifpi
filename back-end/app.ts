@@ -3,6 +3,77 @@ import { RepositorioDePostagens } from './RepositorioDePostagens';
 import { Postagem } from './Postagem';
 import cors from 'cors';
 
+import "reflect-metadata";
+import express from "express";
+import { DataSource } from "typeorm";
+import { Postagem } from "./Postagem";
+import { RepositorioDePostagens } from "./RepositorioDePostagens";
+
+const app = express();
+app.use(express.json());
+
+const AppDataSource = new DataSource({
+    type: "postgres",
+    host: "localhost",
+    port: 5432,
+    username: "seu_usuario",
+    password: "sua_senha",
+    database: "socialifpi",
+    synchronize: true,
+    logging: false,
+    entities: [Postagem],
+});
+
+AppDataSource.initialize().then(() => {
+    console.log("Conectado ao banco de dados PostgreSQL.");
+
+    const repositorio = new RepositorioDePostagens(AppDataSource);
+
+    // Rota: listar postagens
+    app.get("/socialifpi/postagem", async (req, res) => {
+        const postagens = await repositorio.listar();
+        res.json(postagens);
+    });
+
+    // Rota: criar postagem
+    app.post("/socialifpi/postagem", async (req, res) => {
+        const nova = req.body as Postagem;
+        const resultado = await repositorio.criar(nova);
+        res.status(201).json(resultado);
+    });
+
+    // Rota: buscar por ID
+    app.get("/socialifpi/postagem/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        const postagem = await repositorio.buscarPorId(id);
+        if (postagem) res.json(postagem);
+        else res.status(404).json({ erro: "Postagem não encontrada" });
+    });
+
+    // Rota: excluir postagem
+    app.delete("/socialifpi/postagem/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        await repositorio.excluir(id);
+        res.status(204).send();
+    });
+
+    // Rota: atualizar postagem
+    app.put("/socialifpi/postagem/:id", async (req, res) => {
+        const id = parseInt(req.params.id);
+        let postagem = await repositorio.buscarPorId(id);
+        if (!postagem) return res.status(404).json({ erro: "Não encontrada" });
+
+        Object.assign(postagem, req.body);
+        const atualizada = await repositorio.atualizar(postagem);
+        res.json(atualizada);
+    });
+
+    app.listen(3000, () => {
+        console.log("Servidor rodando em http://localhost:3000");
+    });
+}).catch((err) => {
+    console.error("Erro ao conectar no banco:", err);
+});
 
 
 const app = express();

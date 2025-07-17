@@ -1,3 +1,5 @@
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+
 export class Postagem {
     private id: number;
     private titulo: string;
@@ -32,4 +34,25 @@ export class Postagem {
     public getCurtidas(): number {
         return this.curtidas;
     }
+}
+
+@Entity()
+export class Postagem {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column()
+    titulo: string;
+
+    @Column()
+    conteudo: string;
+
+    @Column()
+    autor: string;
+
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+    data: Date;
+
+    @Column({ default: 0 })
+    curtidas: number;
 }

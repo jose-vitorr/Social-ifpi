@@ -1,4 +1,34 @@
 import { Postagem } from './Postagem';
+import { DataSource } from "typeorm";
+
+export class RepositorioDePostagens {
+    constructor(private dataSource: DataSource) {}
+
+    private get repo() {
+        return this.dataSource.getRepository(Postagem);
+    }
+
+    async listar(): Promise<Postagem[]> {
+        return this.repo.find({ order: { data: "DESC" } });
+    }
+
+    async criar(postagem: Postagem): Promise<Postagem> {
+        return this.repo.save(postagem);
+    }
+
+    async buscarPorId(id: number): Promise<Postagem | null> {
+        return this.repo.findOneBy({ id });
+    }
+
+    async excluir(id: number): Promise<void> {
+        await this.repo.delete(id);
+    }
+
+    async atualizar(postagem: Postagem): Promise<Postagem> {
+        return this.repo.save(postagem);
+    }
+}
+
 
 export class RepositorioDePostagens {
     private postagens: Postagem[] = [];
