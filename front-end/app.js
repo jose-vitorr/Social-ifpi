@@ -1,90 +1,155 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+
 function getById(id) {
     return document.getElementById(id);
 }
-const apiUrl = 'http://localhost:3000/socialifpi/postagem'; // Atualize a URL conforme necessário
-// Função para listar todas as postagens
-function listarPostagens() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch(apiUrl);
-        const postagens = yield response.json();
-        const postagensElement = getById('postagens');
-        if (postagensElement) {
-            postagensElement.innerHTML = ''; // Limpa as postagens anteriores
-            postagens.forEach(postagem => {
-                const article = document.createElement('article');
-                const titulo = document.createElement('h2');
-                titulo.textContent = postagem.titulo;
-                const conteudo = document.createElement('p');
-                conteudo.textContent = postagem.conteudo;
-                const data = document.createElement('p');
-                data.className = 'data';
-                data.textContent = new Date(postagem.data).toLocaleDateString();
-                const curtidas = document.createElement('p');
-                curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
-                curtidas.style.fontWeight = 'bold';
-                const botaoCurtir = document.createElement('button');
-                botaoCurtir.textContent = 'Curtir';
-                botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
-                article.appendChild(titulo);
-                article.appendChild(conteudo);
-                article.appendChild(data);
-                article.appendChild(curtidas);
-                article.appendChild(botaoCurtir);
-                postagensElement.appendChild(article);
+
+const apiUrl = 'http://localhost:3000/socialifpi/postagem';
+
+// ✅ Agora a URL para comentários está consistente com o backend
+const comentariosUrl = 'http://localhost:3000/socialifpi/postagem';
+
+// Listar todas as postagens com comentários
+async function listarPostagens() {
+    const response = await fetch(apiUrl);
+    const postagens = await response.json();
+    const postagensElement = getById('postagens');
+    if (postagensElement) {
+        postagensElement.innerHTML = '';
+        postagens.forEach(postagem => {
+            const article = document.createElement('article');
+
+            const titulo = document.createElement('h2');
+            titulo.textContent = postagem.titulo;
+
+            const conteudo = document.createElement('p');
+            conteudo.textContent = postagem.conteudo;
+
+            const data = document.createElement('p');
+            data.className = 'data';
+            data.textContent = new Date(postagem.data).toLocaleDateString();
+
+            const curtidas = document.createElement('p');
+            curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
+            curtidas.style.fontWeight = 'bold';
+
+            const botaoCurtir = document.createElement('button');
+            botaoCurtir.textContent = 'Curtir';
+            botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
+
+            const comentariosDiv = document.createElement('div');
+            comentariosDiv.className = 'comentarios';
+
+            const listaComentarios = document.createElement('ul');
+            comentariosDiv.appendChild(listaComentarios);
+
+            const inputComentario = document.createElement('input');
+            inputComentario.type = 'text';
+            inputComentario.placeholder = 'Escreva um comentário';
+
+            const botaoComentar = document.createElement('button');
+            botaoComentar.textContent = 'Comentar';
+            botaoComentar.addEventListener('click', () => {
+                adicionarComentario(postagem.id, inputComentario.value, listaComentarios);
+                inputComentario.value = '';
             });
-        }
-    });
-}
-// Função para curtir uma postagem
-function curtirPostagem(id, curtidasElement) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch(`${apiUrl}/${id}/curtir`, {
-            method: 'POST'
+
+            comentariosDiv.appendChild(inputComentario);
+            comentariosDiv.appendChild(botaoComentar);
+
+            article.appendChild(titulo);
+            article.appendChild(conteudo);
+            article.appendChild(data);
+            article.appendChild(curtidas);
+            article.appendChild(botaoCurtir);
+            article.appendChild(document.createElement('hr'));
+            article.appendChild(comentariosDiv);
+            postagensElement.appendChild(article);
+
+            listarComentarios(postagem.id, listaComentarios);
         });
-        const result = yield response.json();
-        curtidasElement.textContent = `Curtidas: ${result.curtidas}`;
-    });
+    }
 }
-// Função para incluir uma nova postagem
-function incluirPostagem() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const tituloInput = getById('titulo');
-        const conteudoInput = getById('conteudo');
-        if (tituloInput && conteudoInput) {
-            const novaPostagem = {
-                titulo: tituloInput.value,
-                conteudo: conteudoInput.value,
-                data: new Date().toISOString(),
-                curtidas: 0
-            };
-            const response = yield fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(novaPostagem)
-            });
-            const postagemIncluida = yield response.json();
-            listarPostagens(); // Atualiza a lista de postagens
-            // Limpa os campos do formulário
+
+// Curtir postagem
+async function curtirPostagem(id, curtidasElement) {
+    const response = await fetch(`${apiUrl}/${id}/curtir`, {
+        method: 'POST'
+    });
+    const result = await response.json();
+    curtidasElement.textContent = `Curtidas: ${result.curtidas}`;
+}
+
+// Incluir nova postagem
+async function incluirPostagem(event) {
+    event.preventDefault();
+
+    const tituloInput = getById('titulo');
+    const conteudoInput = getById('conteudo');
+
+    if (tituloInput && conteudoInput) {
+        const novaPostagem = {
+            titulo: tituloInput.value.trim(),
+            conteudo: conteudoInput.value.trim(),
+            data: new Date().toISOString(),
+            curtidas: 0
+        };
+
+        if (!novaPostagem.titulo || !novaPostagem.conteudo) {
+            alert("Preencha todos os campos.");
+            return;
+        }
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novaPostagem)
+        });
+
+        if (response.ok) {
+            await listarPostagens();
             tituloInput.value = '';
             conteudoInput.value = '';
+        } else {
+            alert("Erro ao cadastrar postagem.");
         }
+    }
+}
+
+// Listar comentários
+async function listarComentarios(postagemId, listaElement) {
+    const response = await fetch(`${comentariosUrl}/${postagemId}/comentario`);
+    if (response.ok) {
+        const comentarios = await response.json();
+        listaElement.innerHTML = '';
+        comentarios.forEach(comentario => {
+            const li = document.createElement('li');
+            li.textContent = comentario.texto;
+            listaElement.appendChild(li);
+        });
+    }
+}
+
+// Adicionar comentário
+async function adicionarComentario(postagemId, texto, listaElement) {
+    if (!texto.trim()) return;
+    const novoComentario = {
+        comentario: { texto: texto }
+    };
+    await fetch(`${comentariosUrl}/${postagemId}/comentario`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoComentario)
     });
+    listarComentarios(postagemId, listaElement);
 }
-// Inicializa a aplicação
-listarPostagens();
-const botaoNovaPostagem = getById("botaoNovaPostagem");
-if (botaoNovaPostagem) {
-    botaoNovaPostagem.addEventListener('click', incluirPostagem);
-}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    listarPostagens();
+
+    const botaoNovaPostagem = getById("botaoNovaPostagem");
+    if (botaoNovaPostagem) {
+        botaoNovaPostagem.addEventListener('click', incluirPostagem);
+    }
+});
