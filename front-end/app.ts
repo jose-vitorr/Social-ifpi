@@ -1,8 +1,9 @@
-function getById(id: string) {
+function getById(id: string): HTMLElement | null {
     return document.getElementById(id);
 }
 
-const apiUrl = 'http://localhost:3000/socialifpi/postagem';  // Atualize a URL conforme necessário
+const apiUrl = 'http://localhost:3000/socialifpi/postagem';
+const comentariosUrl = 'http://localhost:3000/socialifpi/postagem';
 
 interface Postagem {
     id: number;
@@ -12,48 +13,74 @@ interface Postagem {
     curtidas: number;
 }
 
-// Função para listar todas as postagens
-async function listarPostagens() {
+interface Comentario {
+    texto: string;
+}
+
+// Listar todas as postagens
+async function listarPostagens(): Promise<void> {
     const response = await fetch(apiUrl);
     const postagens: Postagem[] = await response.json();
-
     const postagensElement = getById('postagens');
-    if (postagensElement) {
-        postagensElement.innerHTML = '';  // Limpa as postagens anteriores
-        postagens.forEach(postagem => {
-            const article = document.createElement('article');
+    if (!postagensElement) return;
 
-            const titulo = document.createElement('h2');
-            titulo.textContent = postagem.titulo;
+    postagensElement.innerHTML = '';
+    for (const postagem of postagens) {
+        const article = document.createElement('article');
 
-            const conteudo = document.createElement('p');
-            conteudo.textContent = postagem.conteudo;
+        const titulo = document.createElement('h2');
+        titulo.textContent = postagem.titulo;
 
-            const data = document.createElement('p');
-            data.className = 'data';
-            data.textContent = new Date(postagem.data).toLocaleDateString();
+        const conteudo = document.createElement('p');
+        conteudo.textContent = postagem.conteudo;
 
-            const curtidas = document.createElement('p');
-            curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
-            curtidas.style.fontWeight = 'bold';
+        const data = document.createElement('p');
+        data.className = 'data';
+        data.textContent = new Date(postagem.data).toLocaleDateString();
 
-            const botaoCurtir = document.createElement('button');
-            botaoCurtir.textContent = 'Curtir';
-            botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
+        const curtidas = document.createElement('p');
+        curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
+        curtidas.style.fontWeight = 'bold';
 
-            article.appendChild(titulo);
-            article.appendChild(conteudo);
-            article.appendChild(data);
-            article.appendChild(curtidas);
-            article.appendChild(botaoCurtir);
+        const botaoCurtir = document.createElement('button');
+        botaoCurtir.textContent = 'Curtir';
+        botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
 
-            postagensElement.appendChild(article);
+        const comentariosDiv = document.createElement('div');
+        comentariosDiv.className = 'comentarios';
+
+        const listaComentarios = document.createElement('ul');
+        comentariosDiv.appendChild(listaComentarios);
+
+        const inputComentario = document.createElement('input');
+        inputComentario.type = 'text';
+        inputComentario.placeholder = 'Escreva um comentário';
+
+        const botaoComentar = document.createElement('button');
+        botaoComentar.textContent = 'Comentar';
+        botaoComentar.addEventListener('click', () => {
+            adicionarComentario(postagem.id, inputComentario.value, listaComentarios);
+            inputComentario.value = '';
         });
+
+        comentariosDiv.appendChild(inputComentario);
+        comentariosDiv.appendChild(botaoComentar);
+
+        article.appendChild(titulo);
+        article.appendChild(conteudo);
+        article.appendChild(data);
+        article.appendChild(curtidas);
+        article.appendChild(botaoCurtir);
+        article.appendChild(document.createElement('hr'));
+        article.appendChild(comentariosDiv);
+        postagensElement.appendChild(article);
+
+        await listarComentarios(postagem.id, listaComentarios);
     }
 }
 
-// Função para curtir uma postagem
-async function curtirPostagem(id: number, curtidasElement: HTMLParagraphElement) {
+// Curtir postagem
+async function curtirPostagem(id: number, curtidasElement: HTMLParagraphElement): Promise<void> {
     const response = await fetch(`${apiUrl}/${id}/curtir`, {
         method: 'POST'
     });
@@ -61,41 +88,79 @@ async function curtirPostagem(id: number, curtidasElement: HTMLParagraphElement)
     curtidasElement.textContent = `Curtidas: ${result.curtidas}`;
 }
 
-// Função para incluir uma nova postagem
-async function incluirPostagem() {
-    const tituloInput = <HTMLInputElement>getById('titulo');
-    const conteudoInput = <HTMLInputElement>getById('conteudo');
+// Incluir nova postagem
+async function incluirPostagem(event: Event): Promise<void> {
+    event.preventDefault();
+
+    const tituloInput = getById('titulo') as HTMLInputElement;
+    const conteudoInput = getById('conteudo') as HTMLInputElement;
 
     if (tituloInput && conteudoInput) {
         const novaPostagem = {
-            titulo: tituloInput.value,
-            conteudo: conteudoInput.value,
+            titulo: tituloInput.value.trim(),
+            conteudo: conteudoInput.value.trim(),
             data: new Date().toISOString(),
             curtidas: 0
         };
 
+        if (!novaPostagem.titulo || !novaPostagem.conteudo) {
+            alert("Preencha todos os campos.");
+            return;
+        }
+
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(novaPostagem)
         });
 
-        const postagemIncluida = await response.json();
-        listarPostagens();  // Atualiza a lista de postagens
-
-        // Limpa os campos do formulário
-        tituloInput.value = '';
-        conteudoInput.value = '';
+        if (response.ok) {
+            await listarPostagens();
+            tituloInput.value = '';
+            conteudoInput.value = '';
+        } else {
+            alert("Erro ao cadastrar postagem.");
+        }
     }
 }
 
-// Inicializa a aplicação
-listarPostagens();
-
-const botaoNovaPostagem = getById("botaoNovaPostagem");
-if (botaoNovaPostagem) {
-    botaoNovaPostagem.addEventListener('click', incluirPostagem);
+// Listar comentários
+async function listarComentarios(postagemId: number, listaElement: HTMLUListElement): Promise<void> {
+    const response = await fetch(`${comentariosUrl}/${postagemId}/comentario`);
+    if (response.ok) {
+        const comentarios: Comentario[] = await response.json();
+        listaElement.innerHTML = '';
+        comentarios.forEach(comentario => {
+            const li = document.createElement('li');
+            li.textContent = comentario.texto;
+            listaElement.appendChild(li);
+        });
+    }
 }
 
+// Adicionar comentário
+async function adicionarComentario(postagemId: number, texto: string, listaElement: HTMLUListElement): Promise<void> {
+    if (!texto.trim()) return;
+
+    const novoComentario = {
+        comentario: { texto }
+    };
+
+    await fetch(`${comentariosUrl}/${postagemId}/comentario`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoComentario)
+    });
+
+    listarComentarios(postagemId, listaElement);
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+    listarPostagens();
+
+    const botaoNovaPostagem = getById("botaoNovaPostagem");
+    if (botaoNovaPostagem) {
+        botaoNovaPostagem.addEventListener('click', incluirPostagem);
+    }
+});
