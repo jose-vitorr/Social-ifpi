@@ -3,61 +3,55 @@ import { RepositorioDePostagens } from './RepositorioDePostagens';
 import { Postagem } from './Postagem';
 import cors from 'cors';
 
-
-
 const app = express();
 const repositorio = new RepositorioDePostagens();
 
 // Configurações do Express
 app.use(express.json());
-
-// Configuração básica do CORS
 app.use(cors());
 
 // Povoar o repositório com postagens iniciais
 repositorio.povoar();
 
-// Endpoint para raiz
+// Constantes de caminhos
 const PATH: string = '/socialifpi/postagem';
 const PATH_ID: string = PATH + '/:id';
-const PATH_CURTIR = PATH_ID + '/curtir';
+const PATH_CURTIR: string = PATH_ID + '/curtir';
+const PATH_COMENTARIO: string = PATH_ID + '/comentario';
 
-
-
-// Endpoint para listar todas as postagens
+// Listar todas as postagens
 app.get(PATH, (req: Request, res: Response) => {
     const postagens = repositorio.listar();
     res.json(postagens);
 });
 
-// Endpoint para consultar uma postagem pelo ID
+// Consultar postagem por ID
 app.get(PATH_ID, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const postagem = repositorio.consultar(id);
-    
+
     if (!postagem) {
         res.status(404).json({ message: 'Postagem não encontrada' });
         return;
-        
-    } 
+    }
 
     res.json(postagem);
 });
 
-// Endpoint para incluir uma nova postagem
+// Incluir nova postagem
 app.post(PATH, (req: Request, res: Response) => {
-    const { titulo, conteudo, data, curtidas } = req.body;
-    const novaPostagem = new Postagem(0, titulo, conteudo, new Date(data), curtidas || 0);
+    const { titulo, conteudo, autor, data, curtidas } = req.body;
+    const novaPostagem = new Postagem(0, titulo, conteudo, autor, new Date(data), curtidas || 0);
     const postagemIncluida = repositorio.incluir(novaPostagem);
     res.status(201).json(postagemIncluida);
 });
 
-// Endpoint para alterar uma postagem existente
+// Alterar postagem
 app.put(PATH_ID, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { titulo, conteudo, data, curtidas } = req.body;
-    
     const sucesso = repositorio.alterar(id, titulo, conteudo, data, curtidas);
+
     if (!sucesso) {
         res.status(404).json({ message: 'Postagem não encontrada' });
         return;
@@ -66,10 +60,11 @@ app.put(PATH_ID, (req: Request, res: Response) => {
     res.status(200).json({ message: 'Postagem alterada com sucesso' });
 });
 
-// Endpoint para excluir uma postagem pelo ID
+// Excluir postagem
 app.delete(PATH_ID, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const sucesso = repositorio.excluir(id);
+
     if (!sucesso) {
         res.status(404).json({ message: 'Postagem não encontrada' });
         return;
@@ -78,28 +73,58 @@ app.delete(PATH_ID, (req: Request, res: Response) => {
     res.status(200).json({ message: 'Postagem excluída com sucesso' });
 });
 
-// Endpoint para curtir uma postagem pelo ID
-// Endpoint para curtir uma postagem pelo ID e retornar a quantidade de curtidas
+// Curtir postagem
 app.post(PATH_CURTIR, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const curtidas = repositorio.curtir(id);
-    
+
     if (curtidas == null) {
         res.status(404).json({ message: 'Postagem não encontrada' });
         return;
-        
-    } 
-    
+    }
+
     res.json({ message: 'Postagem curtida com sucesso', curtidas });
 });
 
-// Inicializar o servidor na porta 3000
+// Adicionar comentário
+app.post(PATH_COMENTARIO, (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const { comentario } = req.body;
+
+    const postagem = repositorio.consultar(id);
+
+    if (!postagem) {
+        res.status(404).json({ message: 'Postagem não encontrada' });
+        return;
+    }
+
+    postagem.adicionarComentario(comentario);
+    res.status(201).json({
+        message: 'Comentário adicionado com sucesso',
+        comentarios: postagem.getComentarios()
+    });
+});
+
+// ✅ Novo endpoint: Listar comentários de uma postagem
+app.get(PATH_COMENTARIO, (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const postagem = repositorio.consultar(id);
+
+    if (!postagem) {
+        res.status(404).json({ message: 'Postagem não encontrada' });
+        return;
+    }
+
+    res.json(postagem.getComentarios());
+});
+
+// Middleware de rota não encontrada
+app.use((req: Request, res: Response, next: NextFunction) => {
+    res.status(404).send('Não encontrado');
+});
+
+// Inicializar o servidor
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-    res.status(404).send('Não encontrado');
 });
