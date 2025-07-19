@@ -1,12 +1,12 @@
 /* Variáveis de cor */
 :root {
-    --cor-principal: #1A1A1A; /* Cinza escuro quase preto */
-    --cor-secundaria: #333333; /* Cinza escuro */
-    --cor-fundo: #121212; /* Preto para o fundo */
-    --cor-texto: #EAEAEA; /* Cinza claro para o texto */
-    --cor-texto-secundario: #CCCCCC; /* Cinza um pouco mais escuro para textos secundários */
-    --cor-borda: #444444; /* Cinza escuro para bordas */
-    --cor-hover: #555555; /* Cinza intermediário para efeitos hover */
+    --cor-principal: #1A1A1A;
+    --cor-secundaria: #333333;
+    --cor-fundo: #121212;
+    --cor-texto: #EAEAEA;
+    --cor-texto-secundario: #CCCCCC;
+    --cor-borda: #444444;
+    --cor-hover: #555555;
 }
 
 /* Reset básico */
@@ -72,8 +72,9 @@ main {
     padding: 0 20px;
 }
 
-section#formulario {
-    margin-bottom: 20px;
+/* Estilo para nova postagem */
+.nova-postagem {
+    margin-bottom: 30px;
     padding: 15px;
     border: 1px solid var(--cor-borda);
     border-radius: 10px;
@@ -81,20 +82,21 @@ section#formulario {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.campos h2 {
+.nova-postagem h2 {
     margin-bottom: 10px;
     font-size: 1.5rem;
     color: var(--cor-texto-secundario);
 }
 
-.campos label {
+.nova-postagem label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
     color: var(--cor-texto-secundario);
 }
 
-.campos input, .campos textarea {
+.nova-postagem input,
+.nova-postagem textarea {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -105,7 +107,7 @@ section#formulario {
     color: var(--cor-texto);
 }
 
-.campos button {
+.nova-postagem button {
     padding: 10px 20px;
     background-color: var(--cor-principal);
     color: #fff;
@@ -115,11 +117,12 @@ section#formulario {
     transition: background-color 0.3s;
 }
 
-.campos button:hover {
+.nova-postagem button:hover {
     background-color: var(--cor-hover);
 }
 
-section#postagens article {
+/* Estilo para postagens */
+#lista-postagens article {
     margin-bottom: 20px;
     padding: 15px;
     border: 1px solid var(--cor-borda);
@@ -128,36 +131,58 @@ section#postagens article {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-section#postagens article h2 {
+#lista-postagens article h2 {
     font-size: 1.75rem;
     margin-bottom: 10px;
     color: var(--cor-texto);
 }
 
-section#postagens article p {
+#lista-postagens article p {
     margin-bottom: 10px;
     font-size: 1rem;
     color: var(--cor-texto-secundario);
 }
 
-section#postagens article .data {
+#lista-postagens article .data {
     font-size: 0.875rem;
     color: var(--cor-texto-secundario);
     text-align: right;
 }
 
-section#postagens article button {
-    padding: 5px 10px;
-    background-color: var(--cor-principal);
-    color: #fff;
+#lista-postagens article .botoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+#lista-postagens article button.editar,
+#lista-postagens article button.excluir {
+    padding: 6px 12px;
+    font-size: 0.875rem;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-section#postagens article button:hover {
-    background-color: var(--cor-hover);
+#lista-postagens article button.editar {
+    background-color: #2d6cdf;
+    color: #fff;
+}
+
+#lista-postagens article button.editar:hover {
+    background-color: #1947a6;
+}
+
+#lista-postagens article button.excluir {
+    background-color: #d63c3c;
+    color: #fff;
+}
+
+#lista-postagens article button.excluir:hover {
+    background-color: #a62828;
 }
 
 footer {
@@ -174,6 +199,34 @@ footer {
 
 footer p {
     margin: 5px 0;
+}
+
+/* Mensagens */
+.mensagem-erro,
+.mensagem-sucesso {
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 0.9rem;
+}
+
+.mensagem-erro {
+    background-color: #a62828;
+    color: #fff;
+}
+
+.mensagem-sucesso {
+    background-color: #2d6cdf;
+    color: #fff;
+}
+
+#botaoAtualizarPostagem {
+    background-color: #f0ad4e;
+    color: #000;
+}
+
+#botaoAtualizarPostagem:hover {
+    background-color: #d99a32;
 }
 
 /* Responsividade */
@@ -194,29 +247,31 @@ footer p {
         padding: 0 10px;
     }
 
-    .campos input, .campos textarea {
+    .nova-postagem input,
+    .nova-postagem textarea {
         font-size: 0.9rem;
     }
 
-    section#postagens article h2 {
+    #lista-postagens article h2 {
         font-size: 1.5rem;
     }
 
-    section#postagens article p {
+    #lista-postagens article p {
         font-size: 0.9rem;
     }
 }
 
 @media (max-width: 480px) {
-    .campos input, .campos textarea {
+    .nova-postagem input,
+    .nova-postagem textarea {
         font-size: 0.8rem;
     }
 
-    section#postagens article h2 {
+    #lista-postagens article h2 {
         font-size: 1.25rem;
     }
 
-    section#postagens article p {
+    #lista-postagens article p {
         font-size: 0.85rem;
     }
 
