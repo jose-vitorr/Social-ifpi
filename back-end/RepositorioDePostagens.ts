@@ -4,7 +4,6 @@ export class RepositorioDePostagens {
     private postagens: Postagem[] = [];
     private nextId: number = 1;
 
-    // Método para incluir uma nova postagem
     public incluir(postagem: Postagem): Postagem {
         const novaPostagem = new Postagem(
             this.nextId++,
@@ -12,19 +11,20 @@ export class RepositorioDePostagens {
             postagem.getConteudo(),
             postagem.getAutor(),
             postagem.getData(),
-            postagem.getCurtidas()
+            postagem.getCurtidas(),
+            postagem.getVisualizacoes()
         );
         this.postagens.push(novaPostagem);
         return novaPostagem;
     }
 
-    // Método para alterar uma postagem existente
     public alterar(id: number, titulo: string, conteudo: string, data: Date, curtidas: number): boolean {
         const postagemExistente = this.consultar(id);
         if (!postagemExistente) return false;
 
         const autor = postagemExistente.getAutor();
         const comentarios = postagemExistente.getComentarios();
+        const visualizacoes = postagemExistente.getVisualizacoes();
 
         const postagemAtualizada = new Postagem(
             id,
@@ -32,8 +32,10 @@ export class RepositorioDePostagens {
             conteudo,
             autor,
             data,
-            curtidas
+            curtidas,
+            visualizacoes
         );
+
         comentarios.forEach(c => postagemAtualizada.adicionarComentario(c));
 
         const index = this.postagens.findIndex(p => p.getId() === id);
@@ -41,12 +43,14 @@ export class RepositorioDePostagens {
         return true;
     }
 
-    // Método para consultar uma postagem pelo ID
     public consultar(id: number): Postagem | undefined {
-        return this.postagens.find(postagem => postagem.getId() === id);
+        const postagem = this.postagens.find(postagem => postagem.getId() === id);
+        if (postagem) {
+            postagem.incrementarVisualizacoes();
+        }
+        return postagem;
     }
 
-    // Método para excluir uma postagem pelo ID
     public excluir(id: number): boolean {
         const index = this.postagens.findIndex(postagem => postagem.getId() === id);
         if (index !== -1) {
@@ -56,35 +60,21 @@ export class RepositorioDePostagens {
         return false;
     }
 
-    // Método para curtir uma postagem pelo ID
     public curtir(id: number): number | null {
         const postagem = this.consultar(id);
         if (!postagem) return null;
 
-        const novaPostagem = new Postagem(
-            postagem.getId(),
-            postagem.getTitulo(),
-            postagem.getConteudo(),
-            postagem.getAutor(),
-            postagem.getData(),
-            postagem.getCurtidas() + 1
-        );
-        postagem.getComentarios().forEach(c => novaPostagem.adicionarComentario(c));
-
-        const index = this.postagens.findIndex(p => p.getId() === id);
-        this.postagens[index] = novaPostagem;
-
-        return novaPostagem.getCurtidas();
+        // Incrementa diretamente o número de curtidas
+        (postagem as any).curtidas++;
+        return postagem.getCurtidas();
     }
 
-    // Método para listar postagens ordenadas por data (mais recente primeiro)
     public listar(): any[] {
         return this.postagens
             .sort((a, b) => b.getData().getTime() - a.getData().getTime())
             .map(postagem => postagem.toJSON());
     }
 
-    // Método para gerar uma data aleatória dentro de um intervalo de anos
     private gerarDataAleatoria(anosPassados: number = 5): Date {
         const hoje = new Date();
         const anoInicial = hoje.getFullYear() - anosPassados;
@@ -94,7 +84,6 @@ export class RepositorioDePostagens {
         return new Date(anoAleatorio, mesAleatorio, diaAleatorio);
     }
 
-    // Método para povoar o repositório com dados iniciais
     public povoar(): void {
         const dados: [string, string, string, number][] = [
             ['A Importância da Educação', 'A educação é a base para uma sociedade mais justa...', 'Maria', 10],
@@ -116,7 +105,8 @@ export class RepositorioDePostagens {
                 conteudo,
                 autor,
                 this.gerarDataAleatoria(),
-                curtidas
+                curtidas,
+                0
             ));
         });
     }
