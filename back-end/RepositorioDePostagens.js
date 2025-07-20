@@ -16,7 +16,8 @@ class RepositorioDePostagens {
             postagem.getConteudo(),
             postagem.getAutor(),
             postagem.getData(),
-            postagem.getCurtidas()
+            postagem.getCurtidas(),
+            postagem.getVisualizacoes()
         );
         this.postagens.push(novaPostagem);
         return novaPostagem;
@@ -28,14 +29,10 @@ class RepositorioDePostagens {
 
         const autor = postagemExistente.getAutor();
         const comentarios = postagemExistente.getComentarios();
+        const visualizacoes = postagemExistente.getVisualizacoes();
 
         const postagemAtualizada = new Postagem_1.Postagem(
-            id,
-            titulo,
-            conteudo,
-            autor,
-            data,
-            curtidas
+            id, titulo, conteudo, autor, data, curtidas, visualizacoes
         );
 
         comentarios.forEach(c => postagemAtualizada.adicionarComentario(c));
@@ -46,7 +43,11 @@ class RepositorioDePostagens {
     }
 
     consultar(id) {
-        return this.postagens.find(postagem => postagem.getId() === id);
+        const postagem = this.postagens.find(postagem => postagem.getId() === id);
+        if (postagem) {
+            postagem.incrementarVisualizacoes();
+        }
+        return postagem;
     }
 
     excluir(id) {
@@ -61,22 +62,8 @@ class RepositorioDePostagens {
     curtir(id) {
         const postagem = this.consultar(id);
         if (!postagem) return null;
-
-        const novaPostagem = new Postagem_1.Postagem(
-            postagem.getId(),
-            postagem.getTitulo(),
-            postagem.getConteudo(),
-            postagem.getAutor(),
-            postagem.getData(),
-            postagem.getCurtidas() + 1
-        );
-
-        postagem.getComentarios().forEach(c => novaPostagem.adicionarComentario(c));
-
-        const index = this.postagens.findIndex(p => p.getId() === id);
-        this.postagens[index] = novaPostagem;
-
-        return novaPostagem.getCurtidas();
+        postagem.curtidas++;
+        return postagem.getCurtidas();
     }
 
     listar() {
@@ -110,12 +97,7 @@ class RepositorioDePostagens {
 
         dados.forEach(([titulo, conteudo, autor, curtidas]) => {
             this.incluir(new Postagem_1.Postagem(
-                0,
-                titulo,
-                conteudo,
-                autor,
-                this.gerarDataAleatoria(),
-                curtidas
+                0, titulo, conteudo, autor, this.gerarDataAleatoria(), curtidas, 0
             ));
         });
     }
