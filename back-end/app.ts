@@ -14,15 +14,14 @@ app.use(cors());
 repositorio.povoar();
 
 // Constantes de caminhos
-const PATH: string = '/socialifpi/postagem';
-const PATH_ID: string = PATH + '/:id';
-const PATH_CURTIR: string = PATH_ID + '/curtir';
-const PATH_COMENTARIO: string = PATH_ID + '/comentario';
+const PATH = '/socialifpi/postagem';
+const PATH_ID = `${PATH}/:id`;
+const PATH_CURTIR = `${PATH_ID}/curtir`;
+const PATH_COMENTARIO = `${PATH_ID}/comentario`;
 
 // Listar todas as postagens
 app.get(PATH, (req: Request, res: Response) => {
-    const postagens = repositorio.listar();
-    res.json(postagens);
+    res.json(repositorio.listar());
 });
 
 // Consultar postagem por ID
@@ -31,11 +30,10 @@ app.get(PATH_ID, (req: Request, res: Response) => {
     const postagem = repositorio.consultar(id);
 
     if (!postagem) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
-    res.json(postagem);
+    res.json(postagem.toJSON());
 });
 
 // Incluir nova postagem
@@ -53,8 +51,7 @@ app.put(PATH_ID, (req: Request, res: Response) => {
     const sucesso = repositorio.alterar(id, titulo, conteudo, data, curtidas);
 
     if (!sucesso) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
     res.status(200).json({ message: 'Postagem alterada com sucesso' });
@@ -66,8 +63,7 @@ app.delete(PATH_ID, (req: Request, res: Response) => {
     const sucesso = repositorio.excluir(id);
 
     if (!sucesso) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
     res.status(200).json({ message: 'Postagem excluída com sucesso' });
@@ -79,8 +75,7 @@ app.post(PATH_CURTIR, (req: Request, res: Response) => {
     const curtidas = repositorio.curtir(id);
 
     if (curtidas == null) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
     res.json({ message: 'Postagem curtida com sucesso', curtidas });
@@ -90,12 +85,10 @@ app.post(PATH_CURTIR, (req: Request, res: Response) => {
 app.post(PATH_COMENTARIO, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { comentario } = req.body;
-
     const postagem = repositorio.consultar(id);
 
     if (!postagem) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
     postagem.adicionarComentario(comentario);
@@ -105,14 +98,13 @@ app.post(PATH_COMENTARIO, (req: Request, res: Response) => {
     });
 });
 
-// ✅ Novo endpoint: Listar comentários de uma postagem
+// Listar comentários de uma postagem
 app.get(PATH_COMENTARIO, (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const postagem = repositorio.consultar(id);
 
     if (!postagem) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+        return res.status(404).json({ message: 'Postagem não encontrada' });
     }
 
     res.json(postagem.getComentarios());
