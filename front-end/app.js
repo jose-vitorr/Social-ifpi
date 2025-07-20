@@ -5,8 +5,6 @@ function getById(id) {
 }
 
 const apiUrl = 'http://localhost:3000/socialifpi/postagem';
-
-// ✅ Agora a URL para comentários está consistente com o backend
 const comentariosUrl = 'http://localhost:3000/socialifpi/postagem';
 
 // Listar todas as postagens com comentários
@@ -32,6 +30,10 @@ async function listarPostagens() {
             const curtidas = document.createElement('p');
             curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
             curtidas.style.fontWeight = 'bold';
+
+            const visualizacoes = document.createElement('p');
+            visualizacoes.textContent = `Visualizações: ${postagem.visualizacoes}`;
+            visualizacoes.style.fontStyle = 'italic';
 
             const botaoCurtir = document.createElement('button');
             botaoCurtir.textContent = 'Curtir';
@@ -61,6 +63,7 @@ async function listarPostagens() {
             article.appendChild(conteudo);
             article.appendChild(data);
             article.appendChild(curtidas);
+            article.appendChild(visualizacoes);
             article.appendChild(botaoCurtir);
             article.appendChild(document.createElement('hr'));
             article.appendChild(comentariosDiv);
@@ -100,19 +103,18 @@ async function incluirPostagem(event) {
             return;
         }
 
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        // ✅ CORREÇÃO AQUI — conforme solicitado
+        await fetch("http://localhost:3000/socialifpi/postagem", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(novaPostagem)
         });
 
-        if (response.ok) {
-            await listarPostagens();
-            tituloInput.value = '';
-            conteudoInput.value = '';
-        } else {
-            alert("Erro ao cadastrar postagem.");
-        }
+        await listarPostagens();
+        tituloInput.value = '';
+        conteudoInput.value = '';
     }
 }
 
