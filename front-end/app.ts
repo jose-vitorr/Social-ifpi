@@ -11,6 +11,7 @@ interface Postagem {
     conteudo: string;
     data: string;
     curtidas: number;
+    visualizacoes: number;
 }
 
 interface Comentario {
@@ -42,6 +43,10 @@ async function listarPostagens(): Promise<void> {
         curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
         curtidas.style.fontWeight = 'bold';
 
+        const visualizacoes = document.createElement('p');
+        visualizacoes.textContent = `Visualizações: ${postagem.visualizacoes}`;
+        visualizacoes.style.fontStyle = 'italic';
+
         const botaoCurtir = document.createElement('button');
         botaoCurtir.textContent = 'Curtir';
         botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
@@ -70,6 +75,7 @@ async function listarPostagens(): Promise<void> {
         article.appendChild(conteudo);
         article.appendChild(data);
         article.appendChild(curtidas);
+        article.appendChild(visualizacoes);
         article.appendChild(botaoCurtir);
         article.appendChild(document.createElement('hr'));
         article.appendChild(comentariosDiv);
