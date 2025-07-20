@@ -36,8 +36,9 @@ app.get(PATH_ID, (req, res) => {
         return;
     }
 
-    res.json(postagem);
+    res.json(postagem.toJSON());
 });
+
 
 // Incluir nova postagem
 app.post(PATH, (req, res) => {
@@ -118,6 +119,7 @@ app.get(PATH_COMENTARIO, (req, res) => {
 
     res.json(postagem.getComentarios());
 });
+
 
 // Middleware de rota não encontrada
 app.use((req, res, next) => {
