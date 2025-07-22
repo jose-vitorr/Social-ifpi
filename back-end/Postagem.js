@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Postagem = void 0;
 
 class Postagem {
-    constructor(id, titulo, conteudo, autor, data, curtidas, visualizacoes = 0) {
+    constructor(id, titulo, conteudo, autor, data, curtidas, visualizacoes = 0, tags = []) {
         this.id = id;
         this.titulo = titulo;
         this.conteudo = conteudo;
@@ -11,6 +11,7 @@ class Postagem {
         this.data = data;
         this.curtidas = curtidas;
         this.visualizacoes = visualizacoes;
+        this.tags = tags;               // ✅ Adiciona o campo tags
         this.comentarios = [];
     }
 
@@ -49,6 +50,7 @@ class Postagem {
             data: this.data,
             curtidas: this.curtidas,
             visualizacoes: this.visualizacoes,
+            tags: this.tags,                  // ✅ Inclui as tags no JSON retornado
             comentarios: this.comentarios
         };
     }
