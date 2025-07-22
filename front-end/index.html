@@ -42,17 +42,17 @@
             <!-- Filtros -->
             <div class="filtros">
                 <input type="text" id="filtroTag" placeholder="Filtrar por tag" />
-                <button onclick="filtrarPorTag()">Filtrar</button>
+                <button type="button" id="filtroTagBtn">Filtrar</button>
 
                 <input type="text" id="filtroTitulo" placeholder="Buscar por título" />
-                <button id="botaoBuscarTitulo">Buscar</button>
+                <button type="button" id="botaoBuscarTitulo">Buscar</button>
             </div>
         </section>
 
         <!-- Lista de postagens -->
         <section class="postagens">
             <h2>Postagens Recentes</h2>
-            <div id="postagens"></div>
+            <div id="postagensContainer"></div>
         </section>
     </main>
 
@@ -61,7 +61,7 @@
         <p>Feito com ♥ pela equipe do IFPI.</p>
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app.js" defer></script>
 </body>
 
 </html>
