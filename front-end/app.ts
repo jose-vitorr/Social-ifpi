@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const botaoBuscarTitulo = getById("botaoBuscarTitulo");
     const filtroTituloInput = getById("filtroTitulo") as HTMLInputElement;
-git
+
     if (botaoBuscarTitulo && filtroTituloInput) {
         botaoBuscarTitulo.addEventListener('click', () => {
             const tituloBusca = filtroTituloInput.value.trim();
