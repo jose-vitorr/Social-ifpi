@@ -1,14 +1,3 @@
-/* Variáveis de cor */
-:root {
-    --cor-principal: #1A1A1A; /* Cinza escuro quase preto */
-    --cor-secundaria: #333333; /* Cinza escuro */
-    --cor-fundo: #121212; /* Preto para o fundo */
-    --cor-texto: #EAEAEA; /* Cinza claro para o texto */
-    --cor-texto-secundario: #CCCCCC; /* Cinza um pouco mais escuro para textos secundários */
-    --cor-borda: #444444; /* Cinza escuro para bordas */
-    --cor-hover: #555555; /* Cinza intermediário para efeitos hover */
-}
-
 /* Reset básico */
 * {
     margin: 0;
@@ -18,36 +7,44 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: var(--cor-fundo);
-    color: var(--cor-texto);
+    background-color: #f4f7fa;
+    color: #333;
     line-height: 1.6;
+    padding: 20px;
 }
 
+/* Layout principal com Grid */
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: auto;
+}
+
+/* Cabeçalho */
 header {
-    background-color: var(--cor-principal);
-    color: #fff;
-    padding: 20px 0;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
+    color: #0d3b66;
 }
 
 header h1 {
-    margin: 0;
     font-size: 2.5rem;
+    color: #0d3b66;
 }
 
 header p {
-    margin-top: 5px;
     font-size: 1.2rem;
-    color: var(--cor-texto-secundario);
+    color: #3f5871;
 }
 
+/* Navegação */
 nav ul {
+    list-style: none;
     display: flex;
     justify-content: center;
-    list-style: none;
-    padding: 10px 0;
-    margin-top: 15px;
+    margin-top: 1rem;
 }
 
 nav ul li {
@@ -55,177 +52,149 @@ nav ul li {
 }
 
 nav ul li a {
-    color: #fff;
     text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: var(--cor-hover);
-}
-
-main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-section#formulario {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid var(--cor-borda);
-    border-radius: 10px;
-    background-color: var(--cor-secundaria);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.campos h2 {
-    margin-bottom: 10px;
-    font-size: 1.5rem;
-    color: var(--cor-texto-secundario);
-}
-
-.campos label {
-    display: block;
-    margin-bottom: 5px;
+    color: #0d3b66;
     font-weight: bold;
-    color: var(--cor-texto-secundario);
 }
 
-.campos input, .campos textarea {
+/* Seção de nova postagem */
+.nova-postagem {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nova-postagem h2 {
+    color: #0d3b66;
+    margin-bottom: 1rem;
+}
+
+.nova-postagem label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.nova-postagem input,
+.nova-postagem textarea {
     width: 100%;
     padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid var(--cor-borda);
-    border-radius: 5px;
-    font-size: 1rem;
-    background-color: var(--cor-principal);
-    color: var(--cor-texto);
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
 }
 
-.campos button {
+.nova-postagem button {
+    margin-top: 15px;
     padding: 10px 20px;
-    background-color: var(--cor-principal);
+    background-color: #0d3b66;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    font-weight: bold;
 }
 
-.campos button:hover {
-    background-color: var(--cor-hover);
+.nova-postagem button:hover {
+    background-color: #0b2f56;
 }
 
-section#postagens article {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid var(--cor-borda);
-    border-radius: 10px;
-    background-color: var(--cor-secundaria);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+/* Filtros */
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-section#postagens article h2 {
-    font-size: 1.75rem;
-    margin-bottom: 10px;
-    color: var(--cor-texto);
+.filtros input {
+    flex: 1;
+    min-width: 150px;
 }
 
-section#postagens article p {
-    margin-bottom: 10px;
-    font-size: 1rem;
-    color: var(--cor-texto-secundario);
+.filtros button {
+    flex-shrink: 0;
 }
 
-section#postagens article .data {
-    font-size: 0.875rem;
-    color: var(--cor-texto-secundario);
-    text-align: right;
+/* Seção de postagens */
+.postagens {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-section#postagens article button {
-    padding: 5px 10px;
-    background-color: var(--cor-principal);
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.postagens h2 {
+    color: #0d3b66;
+    margin-bottom: 1rem;
 }
 
-section#postagens article button:hover {
-    background-color: var(--cor-hover);
+.postagens article {
+    border-bottom: 1px solid #ccc;
+    padding: 15px 0;
 }
 
-footer {
-    background-color: var(--cor-principal);
-    color: #fff;
-    text-align: center;
-    padding: 20px 10px;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-    margin-top: 20px;
+.postagens h2,
+.postagens h3 {
+    color: #0d3b66;
+}
+
+.postagens button {
+    margin-right: 10px;
+    padding: 5px 12px;
     font-size: 0.9rem;
+    border: none;
+    background-color: #0d3b66;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-footer p {
-    margin: 5px 0;
+.postagens button:hover {
+    background-color: #0b2f56;
+}
+
+.comentarios {
+    margin-top: 10px;
+}
+
+.comentarios input {
+    width: calc(100% - 90px);
+    margin-right: 10px;
+}
+
+.comentarios ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.comentarios li {
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+/* Rodapé */
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 0.9rem;
+    color: #777;
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-    header h1 {
-        font-size: 1.5rem;
-    }
-
-    nav ul {
-        flex-direction: column;
-    }
-
-    nav ul li {
-        margin-bottom: 10px;
-    }
-
+@media (min-width: 768px) {
     main {
-        padding: 0 10px;
+        grid-template-columns: 1fr 1fr;
     }
 
-    .campos input, .campos textarea {
-        font-size: 0.9rem;
+    .nova-postagem,
+    .postagens {
+        grid-column: span 2;
     }
 
-    section#postagens article h2 {
-        font-size: 1.5rem;
-    }
-
-    section#postagens article p {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .campos input, .campos textarea {
-        font-size: 0.8rem;
-    }
-
-    section#postagens article h2 {
-        font-size: 1.25rem;
-    }
-
-    section#postagens article p {
-        font-size: 0.85rem;
-    }
-
-    nav ul {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    nav ul li {
-        margin-bottom: 5px;
+    .filtros {
+        justify-content: space-between;
     }
 }

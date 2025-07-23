@@ -1,90 +1,153 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-function getById(id) {
-    return document.getElementById(id);
-}
-const apiUrl = 'http://localhost:3000/socialifpi/postagem'; // Atualize a URL conforme necessário
-// Função para listar todas as postagens
-function listarPostagens() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch(apiUrl);
-        const postagens = yield response.json();
-        const postagensElement = getById('postagens');
-        if (postagensElement) {
-            postagensElement.innerHTML = ''; // Limpa as postagens anteriores
-            postagens.forEach(postagem => {
-                const article = document.createElement('article');
-                const titulo = document.createElement('h2');
-                titulo.textContent = postagem.titulo;
-                const conteudo = document.createElement('p');
-                conteudo.textContent = postagem.conteudo;
-                const data = document.createElement('p');
-                data.className = 'data';
-                data.textContent = new Date(postagem.data).toLocaleDateString();
-                const curtidas = document.createElement('p');
-                curtidas.textContent = `Curtidas: ${postagem.curtidas}`;
-                curtidas.style.fontWeight = 'bold';
-                const botaoCurtir = document.createElement('button');
-                botaoCurtir.textContent = 'Curtir';
-                botaoCurtir.addEventListener('click', () => curtirPostagem(postagem.id, curtidas));
-                article.appendChild(titulo);
-                article.appendChild(conteudo);
-                article.appendChild(data);
-                article.appendChild(curtidas);
-                article.appendChild(botaoCurtir);
-                postagensElement.appendChild(article);
-            });
+
+const apiUrl = 'http://localhost:3000/socialifpi/postagem';
+const container = document.getElementById("postagensContainer");
+
+const form = document.getElementById("formNovaPostagem");
+const filtroTagInput = document.getElementById("filtroTag");
+const filtroTagBtn = document.getElementById("filtroTagBtn");
+const filtroTituloInput = document.getElementById("filtroTitulo");
+const botaoBuscarTitulo = document.getElementById("botaoBuscarTitulo");
+
+async function listarPostagens(filtroTag = '', filtroTitulo = '') {
+    try {
+        const response = await fetch(apiUrl);
+        const postagens = await response.json();
+
+        if (!Array.isArray(postagens)) {
+            console.error("Erro: resposta da API não é um array:", postagens);
+            return;
         }
-    });
+
+        const filtradas = postagens.filter(p => {
+            const contemTag = filtroTag === '' || (Array.isArray(p.tags) && p.tags.map(tag => tag.toLowerCase()).includes(filtroTag.toLowerCase()));
+            const contemTitulo = filtroTitulo === '' || (p.titulo && p.titulo.toLowerCase().includes(filtroTitulo.toLowerCase()));
+            return contemTag && contemTitulo;
+        });
+
+        container.innerHTML = "";
+
+        filtradas.forEach(p => {
+            const div = document.createElement("div");
+            div.classList.add("postagem");
+
+            div.innerHTML = `
+                <h3>${p.titulo}</h3>
+                <p>${p.conteudo}</p>
+                <p><strong>Autor:</strong> ${p.autor}</p>
+                <p><strong>Tags:</strong> ${(Array.isArray(p.tags) ? p.tags.join(', ') : 'Nenhuma')}</p>
+                <p><strong>Visualizações:</strong> ${p.visualizacoes || 0}</p>
+                <p><strong>Curtidas:</strong> ${p.curtidas || 0}</p>
+                
+                <button onclick="curtirPostagem(${p.id})">Curtir</button>
+                <button onclick="excluirPostagem(${p.id})">Excluir</button>
+
+                <div>
+                    <h4>Comentários:</h4>
+                    <ul>
+                        ${Array.isArray(p.comentarios) && p.comentarios.length > 0
+                            ? p.comentarios.map(c => `<li>${c.texto} (${new Date(c.data).toLocaleDateString()})</li>`).join('')
+                            : '<li>Nenhum comentário ainda</li>'
+                        }
+                    </ul>
+
+                    <input type="text" id="comentario-${p.id}" placeholder="Adicionar comentário">
+                    <button onclick="adicionarComentario(${p.id})">Comentar</button>
+                </div>
+            `;
+
+            container.appendChild(div);
+        });
+    } catch (err) {
+        console.error("Erro ao listar postagens:", err);
+    }
 }
-// Função para curtir uma postagem
-function curtirPostagem(id, curtidasElement) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const response = yield fetch(`${apiUrl}/${id}/curtir`, {
+
+async function curtirPostagem(id) {
+    try {
+        await fetch(`${apiUrl}/${id}/curtir`, {
             method: 'POST'
         });
-        const result = yield response.json();
-        curtidasElement.textContent = `Curtidas: ${result.curtidas}`;
-    });
+        listarPostagens();
+    } catch (err) {
+        console.error("Erro ao curtir postagem:", err);
+    }
 }
-// Função para incluir uma nova postagem
-function incluirPostagem() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const tituloInput = getById('titulo');
-        const conteudoInput = getById('conteudo');
-        if (tituloInput && conteudoInput) {
-            const novaPostagem = {
-                titulo: tituloInput.value,
-                conteudo: conteudoInput.value,
-                data: new Date().toISOString(),
-                curtidas: 0
-            };
-            const response = yield fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(novaPostagem)
-            });
-            const postagemIncluida = yield response.json();
-            listarPostagens(); // Atualiza a lista de postagens
-            // Limpa os campos do formulário
-            tituloInput.value = '';
-            conteudoInput.value = '';
-        }
-    });
+
+async function adicionarComentario(id) {
+    const input = document.getElementById(`comentario-${id}`);
+    const textoComentario = input.value.trim();
+
+    if (!textoComentario) return;
+
+    try {
+        await fetch(`${apiUrl}/${id}/comentario`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comentario: textoComentario })
+        });
+
+        input.value = '';
+        listarPostagens();
+    } catch (err) {
+        console.error("Erro ao adicionar comentário:", err);
+    }
 }
-// Inicializa a aplicação
+
+async function excluirPostagem(id) {
+    const confirmacao = confirm("Tem certeza que deseja excluir esta postagem?");
+    if (!confirmacao) return;
+
+    try {
+        await fetch(`${apiUrl}/${id}`, {
+            method: 'DELETE'
+        });
+
+        listarPostagens();
+    } catch (err) {
+        console.error("Erro ao excluir postagem:", err);
+    }
+}
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const novaPostagem = {
+        titulo: document.getElementById("titulo").value,
+        conteudo: document.getElementById("conteudo").value,
+        autor: document.getElementById("autor").value,
+        data: new Date().toISOString(),
+        tags: document.getElementById("tags").value
+            .split(",")
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0)
+    };
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(novaPostagem)
+        });
+
+        if (!response.ok) throw new Error("Erro ao criar postagem");
+
+        await listarPostagens();
+        form.reset();
+    } catch (err) {
+        console.error("Erro ao enviar nova postagem:", err);
+    }
+});
+
+// Filtro por tag
+filtroTagBtn.addEventListener("click", () => {
+    listarPostagens(filtroTagInput.value, filtroTituloInput.value);
+});
+
+// Filtro por título
+botaoBuscarTitulo.addEventListener("click", () => {
+    listarPostagens(filtroTagInput.value, filtroTituloInput.value);
+});
+
+// Carregar postagens ao iniciar
 listarPostagens();
-const botaoNovaPostagem = getById("botaoNovaPostagem");
-if (botaoNovaPostagem) {
-    botaoNovaPostagem.addEventListener('click', incluirPostagem);
-}

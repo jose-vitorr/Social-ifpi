@@ -1,105 +1,92 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { RepositorioDePostagens } from './RepositorioDePostagens';
 import { Postagem } from './Postagem';
-import cors from 'cors';
-
-
 
 const app = express();
+const PORT = 3000;
 const repositorio = new RepositorioDePostagens();
 
-// Configurações do Express
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Configuração básica do CORS
-app.use(cors());
-
-// Povoar o repositório com postagens iniciais
-repositorio.povoar();
-
-// Endpoint para raiz
-const PATH: string = '/socialifpi/postagem';
-const PATH_ID: string = PATH + '/:id';
-const PATH_CURTIR = PATH_ID + '/curtir';
-
-
-
-// Endpoint para listar todas as postagens
-app.get(PATH, (req: Request, res: Response) => {
+// Rota: Listar todas as postagens
+app.get('/socialifpi/postagem', (req: Request, res: Response) => {
     const postagens = repositorio.listar();
     res.json(postagens);
 });
 
-// Endpoint para consultar uma postagem pelo ID
-app.get(PATH_ID, (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const postagem = repositorio.consultar(id);
-    
-    if (!postagem) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
-        
-    } 
-
-    res.json(postagem);
+// Rota: Obter uma postagem por ID
+app.get('/socialifpi/postagem/:id', (req: Request, res: Response) => {
+    const { id } = req.params;
+    const postagem = repositorio.obterPorId(id);
+    if (postagem) {
+        res.json(postagem);
+    } else {
+        res.status(404).json({ mensagem: 'Postagem não encontrada' });
+    }
 });
 
-// Endpoint para incluir uma nova postagem
-app.post(PATH, (req: Request, res: Response) => {
-    const { titulo, conteudo, data, curtidas } = req.body;
-    const novaPostagem = new Postagem(0, titulo, conteudo, new Date(data), curtidas || 0);
-    const postagemIncluida = repositorio.incluir(novaPostagem);
-    res.status(201).json(postagemIncluida);
-});
+// Rota: Criar nova postagem
+app.post('/socialifpi/postagem', (req: Request, res: Response) => {
+    const { id, titulo, conteudo, autor, tags } = req.body;
 
-// Endpoint para alterar uma postagem existente
-app.put(PATH_ID, (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const { titulo, conteudo, data, curtidas } = req.body;
-    
-    const sucesso = repositorio.alterar(id, titulo, conteudo, data, curtidas);
-    if (!sucesso) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
+    if (!id || !titulo || !conteudo || !autor) {
+        return res.status(400).json({ mensagem: 'Campos obrigatórios ausentes' });
     }
 
-    res.status(200).json({ message: 'Postagem alterada com sucesso' });
+    const novaPostagem = new Postagem(
+        id,
+        titulo,
+        conteudo,
+        autor,
+        new Date(),
+        0, // curtidas
+        0, // visualizações
+        tags || [] // tags como array de string
+    );
+
+    repositorio.adicionar(novaPostagem);
+    res.status(201).json(novaPostagem);
 });
 
-// Endpoint para excluir uma postagem pelo ID
-app.delete(PATH_ID, (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const sucesso = repositorio.excluir(id);
-    if (!sucesso) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
-    }
-
-    res.status(200).json({ message: 'Postagem excluída com sucesso' });
-});
-
-// Endpoint para curtir uma postagem pelo ID
-// Endpoint para curtir uma postagem pelo ID e retornar a quantidade de curtidas
-app.post(PATH_CURTIR, (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
+// Rota: Curtir postagem
+app.post('/socialifpi/postagem/:id/curtir', (req: Request, res: Response) => {
+    const { id } = req.params;
     const curtidas = repositorio.curtir(id);
-    
-    if (curtidas == null) {
-        res.status(404).json({ message: 'Postagem não encontrada' });
-        return;
-        
-    } 
-    
-    res.json({ message: 'Postagem curtida com sucesso', curtidas });
+
+    if (curtidas !== null) {
+        res.json({ curtidas });
+    } else {
+        res.status(404).json({ mensagem: 'Postagem não encontrada' });
+    }
 });
 
-// Inicializar o servidor na porta 3000
-const PORT = 3000;
+// Rota: Excluir postagem
+app.delete('/socialifpi/postagem/:id', (req: Request, res: Response) => {
+    const { id } = req.params;
+    const removido = repositorio.excluir(id);
+
+    if (removido) {
+        res.json({ mensagem: 'Postagem excluída com sucesso' });
+    } else {
+        res.status(404).json({ mensagem: 'Postagem não encontrada' });
+    }
+});
+
+// Rota: Buscar por tag (ex: ?tag=tecnologia)
+app.get('/socialifpi/postagem/buscar/por-tag', (req: Request, res: Response) => {
+    const { tag } = req.query;
+    if (typeof tag !== 'string') {
+        return res.status(400).json({ mensagem: 'Tag inválida' });
+    }
+
+    const resultados = repositorio.buscarPorTag(tag);
+    res.json(resultados);
+});
+
+// Inicia servidor
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-});
-
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-    res.status(404).send('Não encontrado');
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
